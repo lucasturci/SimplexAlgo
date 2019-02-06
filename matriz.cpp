@@ -1,5 +1,6 @@
 #include "matriz.h"
 #include <vector>
+#include <iostream>
 
 using namespace std;
 
@@ -22,18 +23,16 @@ int gauss_elimination(vector<vector<double> > A, vector<double> b,  vector<doubl
 		where[col] = row;
 
 		for(int i = 0; i < n; ++i)
-			for(int j = 0; j <= m; ++j)
-				if(i != row) {
-					double c = A[i][col] / A[row][col];
-					for(int j = col; j <= m; ++j)
-						A[i][j] -= A[row][j] * c;
-				} 
-
+			if(i != row) {
+				double c = A[i][col] / A[row][col];
+				for(int j = col; j <= m; ++j)
+					A[i][j] -= A[row][j] * c;
+			}
 		row++;
 	}
 
 	ans.assign(m, 0);
-	for(int i = 0; i <= m; ++i)
+	for(int i = 0; i < m; ++i)
 		if(where[i] != -1) // variavel nao eh independente
 			ans[i] = A[where[i]][m] / A[where[i]][i];
 
@@ -42,7 +41,7 @@ int gauss_elimination(vector<vector<double> > A, vector<double> b,  vector<doubl
 		double sum = 0;
 		for(int j = 0; j < m; ++j)
 			sum += ans[j] * A[i][j];
-		if(abs(sum - b[i]) > eps) return 0;
+		if(abs(sum - A[i][m]) > eps) return 0;
 	}
 
 	return 1;
