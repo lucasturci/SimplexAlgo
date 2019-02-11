@@ -79,23 +79,7 @@ void read_term(string line, int & i, double & x, string & var) {
 	var = read_variable(line, i);
 }
 
-int main(int argc, char * argv[]) {
-	// O nome do arquivo de entrada esta no primeiro argumento
-	if(argc != 2) {
-		printf("Usage: %s <filename>\n", argv[0]);
-		return 0;
-	}
-
-	// Abre o arquivo
-	ifstream file(argv[1]);
-	if(file.is_open() == 0) {
-		printf("Could not open file %s\n", argv[1]);
-		return 0;
-	}
-
-	string line;
-	getline(file, line);
-
+void parse_input(char * filename, map<string, double> & par_function, vector<map<string, double> > & par_inequations, vector<double> & par_b) {
 	// Extracts function from line:
 	/*
 		Loop is
@@ -119,11 +103,20 @@ int main(int argc, char * argv[]) {
 					3.5.2 Read '+' or '-' and go to step 1
 	*/
 
+	// Abre o arquivo
+	ifstream file(filename);
+	if(file.is_open() == 0) {
+		printf("Could not open file %s\n", filename);
+		exit(0);
+	}
+
+	string line;
+	getline(file, line);
+
 	// Removes all spaces from line, so there is no problem with that
 	line.erase(remove(line.begin(), line.end(), ' '), line.end());
 
-	vector<double> ct; // Coefficients transposed
-	vector<string> variables;
+	map<string, double> function; // function[x] = coefficient of variable called x in function description
 	int neg = 0;
 	if(line[0] == '-') neg = 1; 
 	for(int i = neg; i < line.size();) {
@@ -132,8 +125,8 @@ int main(int argc, char * argv[]) {
 		read_term(line, i, num, var);
 
 		if(neg) num = -num;
-		ct.push_back(num);
-		variables.push_back(var);
+		if(function.count(var)) throw runtime_error("Variable " + var + " appears more than once");
+		function[var] = num;
 
 		if(i < line.size()) {
 			if(line[i] != '+' and line[i] != '-') throw runtime_error("Unexpected character " + line[i]);
@@ -147,28 +140,25 @@ int main(int argc, char * argv[]) {
 
 	// ======================== Leitura das inequacoes ========================
 
-	vector<vector<int> > A;
-	vector<int> b;
+	vector<map<string, double > > inequations;
+	vector<double> b;
 	while(file.eof() == 0) {
 		getline(file, line);
 		if(line.size() == 0) break;
-		A.emplace_back();
+		inequations.emplace_back();
 		line.erase(remove(line.begin(), line.end(), ' '), line.end());
 		neg = 0;
 		if(line[0] == '-') neg = 1;
 		int i;
-		vector<double> coef;
-		vector<string> variables;
 		for(i = neg; i < line.size();) {
 			double num;
 			string var;
 
 			read_term(line, i, num, var);
 			if(neg) num = -num;
-			A[A.size()-1].push_back(num);
-			coef.push_back(num);
-			variables.push_back(var);
 
+			if(inequations.back().count(var)) throw runtime_error("Variable " + var + " appears more than once");
+			inequations.back()[var] = num;
 			if(line[i] == '<') break;
 
 			if(i < line.size()) {
@@ -188,20 +178,44 @@ int main(int argc, char * argv[]) {
 		if(line[i] == '-' or line[i] == '+') neg = line[i++] == '-';
 		double num = read_num(line, i);
 		if(neg) num = -num;
-		coef.push_back(num);
+		b.push_back(num);
 		if(i != line.size()) throw runtime_error("Unexpected character " + line[i]);
-
-		for(double x : coef) {
-			cout << x << " ";
-		}
-		cout << endl;
-
-		for(string s : variables) {
-			cout << s << " ";
-		}
-		cout << endl;
 	} 
 
 	file.close();
 
+	par_function = function;
+	par_inequations = inequations;
+	par_b = b;
+}
+
+int main(int argc, char * argv[]) {
+	// O nome do arquivo de entrada esta no primeiro argumento
+	if(argc != 2) {
+		printf("Usage: %s <filename>\n", argv[0]);
+		return 0;
+	}
+
+
+	map<string, double> function;
+	vector<map<string, double> > inequations;
+	vector<double> b;
+
+	parse_input(argv[1], function, inequations, b);
+
+	for(pair<string, double> aux : function) {
+		printf("(%s, %.6lf) ", aux.first.c_str(), aux.second);
+	}
+	cout << endl;
+
+	for(int i = 0; i < inequations.size(); ++i) {
+		printf("Inequacao %d: ", i + 1);
+		for(pair<string, double> aux : inequations[i]) {
+			printf("(%s, %.6lf) ", aux.first.c_str(), aux.second);
+		}
+		cout << endl;
+	}
+
+	for(double x : b) cout << x << " ";
+	cout << endl;
 }
