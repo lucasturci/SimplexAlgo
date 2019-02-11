@@ -33,11 +33,54 @@ Sujeito a:
 Depois essas informacoes seram passadas para o README.md
 */
 
+// Reads num
+double read_num(string line, int & i) {
+	double num = 1;
+	// Le o coeficiente e coloca em numero
+	if(isdigit(line[i])) { 
+		// reads real number
+		num = line[i++] - '0';
+		while(i < line.size() and isdigit(line[i])) num = 10 * num + (line[i++] - '0');
+		if(i < line.size() and line[i] == '.') {
+			i++;
+			if(i == line.size() or isdigit(line[i]) == 0) throw runtime_error("Missing decimal part of real number"); 
+			double aux = 10.0;
+			while(i < line.size() and isdigit(line[i])) {
+				num += (line[i++] - '0')/aux;
+				aux *= 10.0;
+			}
+		}
+	}
+	return num;
+}
+
+// Reads variable
+string read_variable(string line, int & i) {
+	if(i == line.size()) throw runtime_error("Missing variable after coefficient");
+	string ans = "";
+	ans += line[i];
+	if(isalpha(line[i]) == 0) throw runtime_error("Variables must start with alphabetic character");
+	++i;
+	while(i < line.size() and line[i] != '+' and line[i] != '-' and line[i] != '<') {
+		if(isalnum(line[i]) == 0) throw runtime_error("Variables must have only alphanumeric characters");
+		ans += line[i++];
+	}
+
+	return ans;
+}
+
+void read_term(string line, int & i, double & x, string & var) {	
+	int flag = isdigit(line[i]);
+	x = read_num(line, i);
+	if(flag) {
+		if(i == line.size() or line[i] != '*') throw runtime_error("Missing * in function description");
+		i++;
+	}
+	var = read_variable(line, i);
+}
+
 int main(int argc, char * argv[]) {
-	// Decidir a forma de input das variaveis depois
-
 	// O nome do arquivo de entrada esta no primeiro argumento
-
 	if(argc != 2) {
 		printf("Usage: %s <filename>\n", argv[0]);
 		return 0;
@@ -79,60 +122,85 @@ int main(int argc, char * argv[]) {
 	// Removes all spaces from line, so there is no problem with that
 	line.erase(remove(line.begin(), line.end(), ' '), line.end());
 
-	vector<double> ct;
+	vector<double> ct; // Coefficients transposed
 	vector<string> variables;
 	int neg = 0;
 	if(line[0] == '-') neg = 1; 
 	for(int i = neg; i < line.size();) {
-		double num = neg? -1 : 1;
-
-		// Le o coeficiente e coloca em numero
-		if(isdigit(line[i])) { 
-			// reads real number
-			num = line[i++] - '0';
-			while(i < line.size() and isdigit(line[i])) num = 10 * num + (line[i++] - '0');
-			if(i < line.size() and line[i] == '.') {
-				i++;
-				if(i == line.size() or isdigit(line[i]) == 0) throw runtime_error("Missing decimal part of real number"); 
-				double aux = 10.0;
-				while(i < line.size() and isdigit(line[i])) {
-					num += (line[i++] - '0')/aux;
-					aux *= 10.0;
-				}
-			}
-
-
-			if(i == line.size() or line[i] != '*') throw runtime_error("Missing * in function description");
-			i++;
-
-			if(neg) num = -num;
-		}
-		ct.push_back(num);
-
-		if(i == line.size()) throw runtime_error("Missing variable after coefficient");
+		double num;
 		string var = "";
-		var = line[i];
-		if(isalpha(line[i]) == 0) throw runtime_error("Variables must start with alphabetic character");
-		++i;
-		while(i < line.size() and line[i] != '+' and line[i] != '-') {
-			if(isalnum(line[i]) == 0) throw runtime_error("Variables must hae only alphanumeric characters");
-			var += line[i++];
-		}
+		read_term(line, i, num, var);
 
+		if(neg) num = -num;
+		ct.push_back(num);
 		variables.push_back(var);
 
 		if(i < line.size()) {
-			if(line[i] != '+' and line[i] != '-') throw runtime_error("Unexpected character" + line[i]);
+			if(line[i] != '+' and line[i] != '-') throw runtime_error("Unexpected character " + line[i]);
 			neg = line[i] == '-';
 			++i;
 		}
 	}
 
-	for(double x : ct) cout << fixed << setprecision(6) <<  x << " ";
-	cout << endl;
+	getline(file, line);
+	if(line.size()) throw runtime_error("Missing blank line after function description");
 
-	for(string var : variables) cout << var << " ";
-	cout << endl;
+	// ======================== Leitura das inequacoes ========================
+
+	vector<vector<int> > A;
+	vector<int> b;
+	while(file.eof() == 0) {
+		getline(file, line);
+		if(line.size() == 0) break;
+		A.emplace_back();
+		line.erase(remove(line.begin(), line.end(), ' '), line.end());
+		neg = 0;
+		if(line[0] == '-') neg = 1;
+		int i;
+		vector<double> coef;
+		vector<string> variables;
+		for(i = neg; i < line.size();) {
+			double num;
+			string var;
+
+			read_term(line, i, num, var);
+			if(neg) num = -num;
+			A[A.size()-1].push_back(num);
+			coef.push_back(num);
+			variables.push_back(var);
+
+			if(line[i] == '<') break;
+
+			if(i < line.size()) {
+				if(line[i] != '+' and line[i] != '-') throw runtime_error("Unexpected character " + line[i]);
+				neg = line[i] == '-';
+				++i;
+			}
+		}
+
+		i++;
+		if(i >= line.size()) throw runtime_error("Missing inequation right-side");
+		if(line[i] != '=') throw runtime_error("Unexpected character " + line[i]);
+		i++;
+		if(i >= line.size()) throw runtime_error("Missing inequation right-side");
+
+		neg = 0;
+		if(line[i] == '-' or line[i] == '+') neg = line[i++] == '-';
+		double num = read_num(line, i);
+		if(neg) num = -num;
+		coef.push_back(num);
+		if(i != line.size()) throw runtime_error("Unexpected character " + line[i]);
+
+		for(double x : coef) {
+			cout << x << " ";
+		}
+		cout << endl;
+
+		for(string s : variables) {
+			cout << s << " ";
+		}
+		cout << endl;
+	} 
 
 	file.close();
 

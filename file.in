@@ -1,1 +1,5 @@
-- 1 * banana + 4 * abacates + 13.32423 * BiCicletas - 1.001 * Motocas
+2 * A + 3 * B - 4 * C
+
+A + B <= 12
+B - C <= 15
+A + 2 * B <= 10
