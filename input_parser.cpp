@@ -173,6 +173,13 @@ void parse_input(char * filename, map<string, double> & par_function, vector<map
 
 		neg = 0;
 		if(line[i] == '-' or line[i] == '+') neg = line[i++] == '-';
+
+		// This version of the simplex algorithm doesn't allow negative values on the right side of inequations yet, 
+		// because it only knows how to start with the trivial feasible solution  
+		if(neg) {
+			cout << "This version of the simplex algorithm doesn't allow negative values on the right side of innequations yet\n";
+			exit(0);
+		}
 		double num = read_num(line, i);
 		if(neg) num = -num;
 		b.push_back(num);
