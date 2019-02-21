@@ -27,17 +27,17 @@ This is where you describe your linear problem.
 * The first line contains the function you want to maximize, in the following format: <br>
 [number *] \<first variable\> {+|-} [number *] \<second variable\> {+|-} ... {+|-} [number *] \<m-th variable\> <br>
 * The second line **must be** an empty line <br>
-The following n lines will be in format: <br>
-* [number *] \<first variable\> {+|-} [number *] \<second variable\> {+|-} ... {+|-} [number *] \<m-th variable\> <= \<number\> <br>
+* The following n lines will be in format: <br>
+[number *] \<first variable\> {+|-} [number *] \<second variable\> {+|-} ... {+|-} [number *] \<m-th variable\> <= \<number\> <br>
 
 *Variables* can be any string with alphanumeric characters (but they mustn't start with a digit), and *number* can be any real number.
 
 For example, 
 > file.in
 > ------------------
-> 2 * a + 3 * c - x <br>
+> 2.5 * a + 3 * c - x <br>
 > <br>
-> a + c <= 15 <br>
+> a + c <= 15.5 <br>
 > 3 * a - y <= 100 <br>
 >
 >
