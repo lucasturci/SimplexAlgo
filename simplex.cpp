@@ -6,7 +6,7 @@
 using namespace std;
 
 
-double solve(vector<double> cT, vector<vector<double> > A, vector<double> b, vector<double> & xB) {
+double solve(vector<double> cT, vector<vector<double> > A, vector<double> b, vector<double> & ans) {
 	double res = 0.0;
 
 	int N = b.size();
@@ -39,10 +39,12 @@ double solve(vector<double> cT, vector<vector<double> > A, vector<double> b, vec
 			cB[aux++] = cT[j];
 
 		// Calculate xB (basic partition of answer)
+		vector<double> xB;
 		if(!gauss_elimination(B, b, xB)) throw runtime_error("No solutions for system B * xB = b");
 
 		// Transposed B
 		vector<vector<double> > BT = transpose(B);
+
 		// Calculate Y =  cB * B^-1
 		vector<double> Y;
 		if(!gauss_elimination(BT, cB, Y)) throw runtime_error("No solutions for system BT * Y = cB");
@@ -69,7 +71,7 @@ double solve(vector<double> cT, vector<vector<double> > A, vector<double> b, vec
 		if(!optimal) {
 			// Variable k can be put into basic set
 
-			vector<double> Nk(N); // kth column of N
+			vector<double> Nk(N); // kth column of N (actually column of A relative to variable k)
 			for(int i = 0; i < N; ++i) Nk[i] = A[i][k];
 
 			// Calculate Z = B^-1 * Nk (kth column of N)
@@ -109,6 +111,11 @@ double solve(vector<double> cT, vector<vector<double> > A, vector<double> b, vec
 		} else {
 			res = 0.0;
 			for(int i = 0; i < N; ++i) res += Y[i] * b[i];
+			ans.assign(N + M, 0.0);
+			aux = 0;
+			for(int j : basic) {
+				ans[j] = xB[aux++];
+			}
 		}
 	}
 
@@ -170,7 +177,6 @@ int main(int argc, char * argv[]) {
 	for(int i = 0; i < M; ++i)
 		cT[i] = function[variables[i]];
 
-
 	/* Parte de testes */
 
 	cout << "Variaveis: ";
@@ -188,6 +194,16 @@ int main(int argc, char * argv[]) {
 		}
 		cout << endl;
 	}
+
+	vector<double> ans;
+	double res = solve(cT, A, b, ans);
+
+	printf("Melhor solucao = %.10lf\n", res);
+	for(int i = 0; i < M; ++i) {
+		printf("%s = %lf\n", variables[i].c_str(), ans[i]);
+	}
+
+	return 0;
 
 	exit(0);
 
