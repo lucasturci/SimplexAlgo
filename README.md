@@ -11,7 +11,7 @@ This is a project made by me with the purpose of solving linear programming prob
 > a<sub>n1</sub> x<sub>1</sub> +  a<sub>n2</sub> x<sub>2</sub> + ... + a<sub>nn</sub> x<sub>n</sub> ≤ b<sub>n</sub> <br>
 >
 
-My crappy implementation of *simplex* algorithm solves such problems easily, but not so fast. The assimptotic complexity of *simplex* best implementation is still exponential, but in average it runs very fast. This implementation does not care to make any major optimization such as to cut some restrictions or stuff like that. In addition, to this moment **this program requires that all b<sub>i</sub> are non-negative.**
+My implementation of *simplex* algorithm solves such problems easily, but not so fast. The assimptotic complexity of *simplex* best implementation is still exponential, but in average it runs very fast. This implementation does not care to make any major optimization such as to cut some restrictions or stuff like that. In addition, to this moment **this program requires that all b<sub>i</sub> are non-negative.**
 
 ### How to use
 *Requirements: g++ compiler with c++ 11 or above*
